@@ -142,17 +142,28 @@ func main() {
 		userCreationRequested.User.LastName = "HEIM"
 
 		var msg *nats.Msg
+		_ = msg
 		for i := 1; i <= 1_000_000 && !task.IsCancelled(ctx); i++ {
 			userCreationRequested.Password.Password = fmt.Sprintf("svc.echo.%d", i)
-			msg, err = natsBroker.Request(userCreationRequested.PublishTopic(), userCreationRequested, time.Second)
+			ev, err := natsBroker.RequestResponse(userCreationRequested.PublishTopic(), userCreationRequested, time.Second, eventRegistry)
 			if err != nil {
 				logger.Error("request", "error", err)
 			} else {
 				logger.Warn("request",
-					"msg", string(msg.Data),
-					"headers", msg.Header,
+					"type", fmt.Sprintf("%T", ev),
 				)
 			}
+
+			//msg, err = natsBroker.Request(userCreationRequested.PublishTopic(), userCreationRequested, time.Second)
+			//if err != nil {
+			//	logger.Error("request", "error", err)
+			//} else {
+			//	logger.Warn("request",
+			//		"msg", string(msg.Data),
+			//		"headers", msg.Header,
+			//	)
+			//}
+
 		}
 	}
 

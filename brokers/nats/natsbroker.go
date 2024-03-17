@@ -181,6 +181,23 @@ func (natsBroker *NatsBroker) Request(topic string, eventer event.Eventer, timeo
 	return natsBroker.nc.RequestMsg(msg, timeout)
 }
 
+func (natsBroker *NatsBroker) RequestResponse(topic string, eventer event.Eventer, timeout time.Duration, eventRegistry registry.Registry[event.Eventer]) (any, error) {
+	msg, err := natsBroker.Request(topic, eventer, timeout)
+	if err != nil {
+		return nil, err
+	}
+	eventType := msg.Header.Get(event.EDATypeHeader)
+	ev, err := eventRegistry.New(eventType)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(msg.Data, &ev)
+	if err != nil {
+		return nil, err
+	}
+	return ev, nil
+}
+
 // Subscribe subscribes to a topic
 func (natsBroker *NatsBroker) Subscribe(ctx context.Context, subscribeTopic string, eventRegistry registry.Registry[event.Eventer], callback func(topic string, event any)) error {
 	_, err := natsBroker.nc.Subscribe(subscribeTopic, func(msg *nats.Msg) {
