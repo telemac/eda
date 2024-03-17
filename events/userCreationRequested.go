@@ -1,6 +1,8 @@
 package events
 
-import "github.com/telemac/eda/edaentities"
+import (
+	"github.com/telemac/eda/edaentities"
+)
 
 type UserCreationRequested struct {
 	edaentities.User
@@ -11,6 +13,8 @@ type UserCreationRequested struct {
 func (ucr UserCreationRequested) Type() string {
 	return "UserCreationRequested"
 }
+
+func (ucr UserCreationRequested) Factory() any { return new(UserCreationRequested) }
 
 // Topic implements msh.Eventer
 func (ucr UserCreationRequested) PublishTopic() string {
@@ -37,7 +41,7 @@ func (ucr UserCreationRequested) Validate() error {
 }
 
 type UserCreationDone struct {
-	UserCreationRequested
+	*UserCreationRequested
 	edaentities.Uuid
 }
 

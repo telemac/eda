@@ -15,7 +15,7 @@ func TestUserCreationRequested(t *testing.T) {
 			LastName:  "HEIM",
 		},
 		Password: edaentities.Password{
-			Password: "svc.echo.1",
+			Password: "password",
 		},
 	}
 	jsonStr, err := json.Marshal(ucr)

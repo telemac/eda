@@ -5,10 +5,10 @@ import (
 	"github.com/telemac/eda"
 	natsbroker "github.com/telemac/eda/brokers/nats"
 	"github.com/telemac/eda/edaentities"
-	"github.com/telemac/eda/event"
 	"github.com/telemac/eda/events"
 	"github.com/telemac/eda/examples/nats-publisher/entities"
 	"github.com/telemac/eda/internal/slogutils"
+	"github.com/telemac/eda/pkg/registry"
 	"github.com/telemac/goutils/task"
 	"log/slog"
 	"strconv"
@@ -51,14 +51,14 @@ func main() {
 		logger.Error("create or update stream", "error", err)
 		return
 	}
-	eventRegistry := event.NewEventRegistry()
-	eventRegistry.Register(&events.UserCreationRequested{})
-	eventRegistry.Register(&events.UserCreationDone{})
-	eventRegistry.Register(&entities.NamedCounter{})
+	eventRegistry := registry.New()
+	registry.Register[events.UserCreationRequested](eventRegistry)
+	registry.Register[events.UserCreationDone](eventRegistry)
+	registry.Register[entities.NamedCounter](eventRegistry)
 
 	var lastCount int = -1
 
-	natsBroker.Subscribe(ctx, "test.>", eventRegistry, func(topic string, event event.Eventer) {
+	natsBroker.Subscribe(ctx, "test.>", eventRegistry, func(topic string, event any) {
 		//attrs := []any{
 		//	slog.String("type", event.Type()),
 		//	slog.String("PublishTopic", event.PublishTopic()),
@@ -116,7 +116,7 @@ func main() {
 	}
 
 	userCreationDoneEvent := events.UserCreationDone{
-		UserCreationRequested: userCreationRequestedEvent,
+		UserCreationRequested: &userCreationRequestedEvent,
 		Uuid:                  edaentities.Uuid{UUID: "005C6A52-85EB-4CA5-826A-3FE71864EBE0"},
 	}
 	err = eda.ValidateAll(userCreationDoneEvent)

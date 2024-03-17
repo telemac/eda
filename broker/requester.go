@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type EventHandler func(requestEvent event.Eventer) (any, error)
+type EventHandler func(requestEvent any) (any, error)
 
 // TODO : implement on natsbroker
 type Requester[T event.Eventer] interface {

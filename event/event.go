@@ -9,4 +9,5 @@ type Eventer interface {
 	Type() string         // event type
 	PublishTopic() string // topic on which the event is published
 	SubscribeTopic() string
+	Factory() interface{}
 }

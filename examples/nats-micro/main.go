@@ -9,6 +9,7 @@ import (
 	"github.com/telemac/eda/event"
 	"github.com/telemac/eda/events"
 	"github.com/telemac/eda/internal/slogutils"
+	"github.com/telemac/eda/pkg/registry"
 	"github.com/telemac/goutils/cli"
 	"github.com/telemac/goutils/task"
 	"log/slog"
@@ -52,10 +53,22 @@ func main() {
 	defer natsBroker.Close()
 
 	// create event registry
-	eventRegistry := event.NewEventRegistry()
-	//eventRegistry.Register(events.UserCreationRequested{})
-	eventRegistry.Register(event.Factory[events.UserCreationRequested]())
-	eventRegistry.Register(&events.UserCreationDone{})
+	eventRegistry := registry.New()
+	// register an event
+	err = eventRegistry.Register(registry.RegistryEntry{
+		EventType:    events.UserCreationRequested{}.Type(),
+		EventFactory: func() any { return new(events.UserCreationRequested) },
+	})
+	if err != nil {
+		logger.Error("register events.UserCreationRequested event", "error", err)
+		return
+	}
+	// register another event using a helper function
+	err = registry.Register[events.UserCreationDone](eventRegistry)
+	if err != nil {
+		logger.Error("register events.UserCreationDone event", "error", err)
+		return
+	}
 
 	hostname, _ := os.Hostname()
 	svc, err := micro.AddService(natsBroker.Nc(), micro.Config{
@@ -79,23 +92,9 @@ func main() {
 
 	if commandLine.Service {
 
-		userCreateHandler2 := func(requestEvent event.Eventer) (any, error) {
-			requestEvent, err := eventRegistry.New(requestEvent.Type())
-			if err != nil {
-				return nil, err
-			}
-			ucr, ok := requestEvent.(*events.UserCreationRequested)
-			if !ok {
-				return nil, fmt.Errorf("invalid event type %T", requestEvent)
-			}
-
-			ucr.Password.Password = ucr.Password.Password + " modified"
-
-			return ucr, nil
-		}
-
 		userCreateHandler := func(req micro.Request) {
 			eventType := req.Headers().Get(event.EDATypeHeader)
+
 			logger.Info("create user",
 				slog.String("data", string(req.Data())),
 				slog.String("subject", req.Subject()),
@@ -103,9 +102,22 @@ func main() {
 				slog.Any("headers", req.Headers()),
 				slog.Int("count", count),
 			)
+			ucr, err := registry.UnmarshalEvent[events.UserCreationRequested](eventRegistry, eventType, req.Data())
+			if err != nil {
+				logger.Error("registry.UnmarshalEvent", "error", err)
+				req.Error(err.Error(), "unmarshal event", nil)
+				return
+			}
+
 			userCreationDone := events.UserCreationDone{
-				UserCreationRequested: events.UserCreationRequested{},
+				UserCreationRequested: ucr,
 				Uuid:                  edaentities.Uuid{UUID: "12345678-1234-1234-1234-123456789012"},
+			}
+			isRegistered := eventRegistry.IsRegistered(&userCreationDone)
+			if !isRegistered {
+				logger.Error("eventRegistry.IsRegistered", "error", "event not registered")
+				req.Error("event not registered", "event not registered", nil)
+				return
 			}
 			headers := micro.Headers{
 				event.EDATypeHeader: []string{userCreationDone.Type()},
@@ -113,12 +125,9 @@ func main() {
 			req.RespondJSON(userCreationDone, micro.WithHeaders(headers))
 			count++
 		}
-		_ = userCreateHandler
 
-		//m := svc.AddGroup("user")
 		svc.AddEndpoint("create",
-			//micro.HandlerFunc(userCreateHandler),
-			natsbroker.HandlerFunc2EventHandler(userCreateHandler2, eventRegistry),
+			micro.HandlerFunc(userCreateHandler),
 			micro.WithEndpointMetadata(map[string]string{
 				"description": "echo",
 				"format":      "application/json",

@@ -7,6 +7,10 @@ type NamedCounter struct {
 	Count int    `json:"count"`
 }
 
+func (c NamedCounter) Factory() interface{} {
+	return new(NamedCounter)
+}
+
 func (c NamedCounter) PublishTopic() string {
 	return "test.named_counter"
 }

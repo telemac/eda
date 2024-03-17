@@ -10,6 +10,7 @@ import (
 	"github.com/nats-io/nats.go/micro"
 	"github.com/telemac/eda/broker"
 	"github.com/telemac/eda/event"
+	"github.com/telemac/eda/pkg/registry"
 	"log/slog"
 	"time"
 )
@@ -181,7 +182,7 @@ func (natsBroker *NatsBroker) Request(topic string, eventer event.Eventer, timeo
 }
 
 // Subscribe subscribes to a topic
-func (natsBroker *NatsBroker) Subscribe(ctx context.Context, subscribeTopic string, eventRegistry event.EventRegistryIntf, callback func(topic string, event event.Eventer)) error {
+func (natsBroker *NatsBroker) Subscribe(ctx context.Context, subscribeTopic string, eventRegistry registry.Registry[event.Eventer], callback func(topic string, event any)) error {
 	_, err := natsBroker.nc.Subscribe(subscribeTopic, func(msg *nats.Msg) {
 		// TODO : make concrete event from event type/topic
 		eventType := msg.Header.Get(event.EDATypeHeader)
@@ -234,7 +235,7 @@ func (natsBroker *NatsBroker) Js() jetstream.JetStream {
 }
 
 // HandlerFunc2EventHandler converts a micro.HandlerFunc to a broker.EventHandler
-func HandlerFunc2EventHandler(eh broker.EventHandler, eventRegistry event.EventRegistryIntf) micro.HandlerFunc {
+func HandlerFunc2EventHandler(eh broker.EventHandler, eventRegistry registry.Registry[event.Eventer]) micro.HandlerFunc {
 	return func(req micro.Request) {
 		slog.Info("HandlerFunc2EventHandler", "data", string(req.Data()))
 		// get reqEvent type from headers
