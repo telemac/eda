@@ -11,11 +11,11 @@ func TestPassword(t *testing.T) {
 
 	password := Password{"Alexandre"}
 	err := password.Validate()
-	assert.NotNil(err)
+	assert.NoError(err)
 
 	password.Password = "password"
 	err = password.Validate()
-	assert.Nil(err)
+	assert.NoError(err)
 
 	jsonStr, err := json.Marshal(password)
 	assert.Nil(err)

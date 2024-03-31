@@ -2,6 +2,7 @@ package events
 
 import (
 	"github.com/telemac/eda/edaentities"
+	"github.com/telemac/eda/event"
 )
 
 type UserCreationRequested struct {
@@ -9,19 +10,19 @@ type UserCreationRequested struct {
 	edaentities.Password
 }
 
-// Type implements msh.Eventer
+// Type implements event.Eventer
 func (ucr UserCreationRequested) Type() string {
-	return "UserCreationRequested"
+	return event.GetTypeName(ucr)
 }
 
 func (ucr UserCreationRequested) Factory() any { return new(UserCreationRequested) }
 
-// Topic implements msh.Eventer
+// Topic implements event.Eventer
 func (ucr UserCreationRequested) PublishTopic() string {
 	return "user.creation.requested." + ucr.LastName
 }
 
-// SubscribeTopic implements msh.Eventer
+// SubscribeTopic implements event.Eventer
 func (ucr UserCreationRequested) SubscribeTopic() string {
 	return "user.creation.requested.*"
 }
@@ -46,7 +47,7 @@ type UserCreationDone struct {
 }
 
 func (ucd UserCreationDone) Type() string {
-	return "UserCreationDone"
+	return event.GetTypeName(ucd)
 }
 
 func (ucd UserCreationDone) Topic() string {

@@ -1,6 +1,8 @@
 package event
 
-import "github.com/telemac/eda"
+import (
+	"github.com/telemac/eda"
+)
 
 const EDATypeHeader = "EDA-Type"
 

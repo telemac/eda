@@ -3,8 +3,9 @@ module github.com/telemac/eda
 go 1.22.0
 
 require (
+	github.com/fatih/camelcase v1.0.0
 	github.com/lmittmann/tint v1.0.4
-	github.com/nats-io/nats.go v1.33.1
+	github.com/nats-io/nats.go v1.34.0
 	github.com/stretchr/testify v1.9.0
 	github.com/telemac/goutils v1.1.44
 )
