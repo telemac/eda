@@ -4,8 +4,6 @@ import (
 	"errors"
 )
 
-type String string
-
 type Password struct {
 	Password string `json:"password"`
 }

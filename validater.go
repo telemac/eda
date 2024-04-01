@@ -84,6 +84,7 @@ func ValidateAll(obj any) error {
 				} else {
 					err := ValidateAll(obj)
 					if err != nil {
+						// TODO : wrap error here
 						return err
 					}
 				}

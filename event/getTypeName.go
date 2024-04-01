@@ -12,6 +12,11 @@ func GetTypeName(event Eventer) string {
 	if lastIndex == -1 {
 		return evType
 	}
+	// remove last char if it is ]
+	l := len(evType)
+	if evType[l-1] == ']' {
+		return evType[lastIndex+1 : l-1]
+	}
 	return evType[lastIndex+1:]
 }
 

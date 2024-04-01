@@ -15,8 +15,6 @@ func (ucr UserCreationRequested) Type() string {
 	return event.GetTypeName(ucr)
 }
 
-func (ucr UserCreationRequested) Factory() any { return new(UserCreationRequested) }
-
 // Topic implements event.Eventer
 func (ucr UserCreationRequested) PublishTopic() string {
 	return "user.creation.requested." + ucr.LastName

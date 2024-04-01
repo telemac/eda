@@ -105,5 +105,6 @@ func TestValidate(t *testing.T) {
 
 	var multipleValidateMethodsUnknownField MultipleValidateMethodsUnknownField
 	err = ValidateAll(multipleValidateMethodsUnknownField)
-	assert.Equal(errors.New("MultipleValidateMethodsUnknownField"), err)
+	assert.ErrorIs(err, ErrNoValidateMethod)
+	assert.Equal("name=string type=string value= obj=string : no Validate method", err.Error())
 }

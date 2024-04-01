@@ -1,28 +1,24 @@
 package entities
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/telemac/eda/event"
+)
 
 type NamedCounter struct {
 	Name  string `json:"name"`
 	Count int    `json:"count"`
 }
 
-func (c NamedCounter) Factory() interface{} {
-	return new(NamedCounter)
-}
-
-func (c NamedCounter) PublishTopic() string {
-	return "test.named_counter"
-}
-
-func (c NamedCounter) SubscribeTopic() string {
-	return c.PublishTopic()
-}
-
 func (c NamedCounter) Type() string {
-	return fmt.Sprintf("%T", c)
+	return event.GetTypeName(c)
 }
-
+func (c NamedCounter) PublishTopic() string {
+	return fmt.Sprintf("test.%s.%d", c.Type(), c.Count)
+}
+func (c NamedCounter) SubscribeTopic() string {
+	return fmt.Sprintf("test.%s.*", c.Type())
+}
 func (c NamedCounter) Validate() error {
 	if c.Name == "" {
 		return fmt.Errorf("Name is empty")
